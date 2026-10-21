@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AeroStat — Location-Based Environmental Analytics</title>
+  <meta name="description" content="Location-based environmental analytics for Indian cities, districts and states using Open-Meteo modelled air-quality and weather data.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="ticker"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="58 24" stroke-linecap="round"/><circle cx="16" cy="16" r="6" fill="currentColor"/></svg>
+      <div><div class="brand-name">AeroStat</div><div class="brand-tag">Location-Based Environmental Analytics</div></div>
+    </div>
+    <div class="search-section">
+      <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="Search an Indian city, district or state…" autocomplete="off">
+        <button class="geo-btn" onclick="useGeo()" title="Use my location">◎ Locate me</button>
+      </div>
+      <div class="suggestions" id="suggestions"></div>
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+    <button class="method-btn" onclick="openModal()">ⓘ Methodology</button>
+  </header>
+
+  <nav class="nav" id="nav">
+    <a href="#overview" class="nav-pill active">Overview</a>
+    <a href="#pollutants" class="nav-pill">Pollutants</a>
+    <a href="#trends" class="nav-pill">Trends</a>
+    <a href="#health" class="nav-pill">Health &amp; Weather</a>
+    <a href="#compare" class="nav-pill">Compare</a>
+    <a href="#climate" class="nav-pill">Climate</a>
+  </nav>
+
+  <div class="loading-bar" id="loadBar">
+    <div class="load-step" id="ls1">Locating city</div>
+    <div class="load-step" id="ls2">Fetching Copernicus CAMS data</div>
+    <div class="load-step" id="ls3">Computing AQI &amp; analytics</div>
+    <div class="load-step" id="ls4">Rendering dashboard</div>
+  </div>
+
+  <main class="container">
+    <div class="dashboard" id="dashboard">
+      <div class="sparse-banner" id="sparseBanner"></div>
+
+      <section id="overview">
+        <div class="hero-row">
+          <div class="card gauge-wrap" id="gaugeCard">
+            <div class="eyebrow" id="heroCity">—</div>
+            <canvas id="gaugeChart" width="280" height="180" aria-label="AQI Gauge"></canvas>
+            <div class="gauge-val" id="gaugeVal">—</div>
+            <div class="gauge-cat" id="gaugeCat">—</div>
+            <p class="verdict" id="verdict"></p>
+            <div class="gauge-sub" id="gaugeSub"></div>
+          </div>
+          <div class="hero-side">
+            <div class="card">
+              <div class="card-title">PM2.5 estimate, three reference standards</div>
+              <div class="std-grid">
+                <div class="std-card"><h4>CPCB-style estimate</h4><div class="val" id="cpcbVal">—</div><div class="cat" id="cpcbCat">—</div></div>
+                <div class="std-card"><h4>US EPA-style estimate</h4><div class="val" id="epaVal">—</div><div class="cat" id="epaCat">—</div></div>
+                <div class="std-card"><h4>WHO 2021 reference</h4><div class="val small" id="whoVal">—</div><div class="cat" id="whoCat">—</div></div>
+              </div>
+              <div class="std-explain" id="stdExplain" onclick="this.classList.toggle('open')">▸ Why do they differ? CPCB calls PM2.5 "Good" up to 30 μg/m³; US EPA only up to 9 μg/m³ (revised 2024).</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="pollutants">
+        <h2 class="section-title">Pollutants <small>24-hour averages vs WHO limits</small></h2>
+        <div class="poll-grid" id="pollGrid"></div>
+      </section>
+
+      <section id="trends">
+        <h2 class="section-title">Trends <small>past 7 days + 7-day forecast</small></h2>
+        <div class="card stats-panel" id="statsPanel">
+          <div class="card-title" id="statsTitle">PM2.5 summary</div>
+          <div class="stat-pills" id="statPills"></div>
+          <div id="threshBars"></div>
+          <div class="trend-text" id="trendText"></div>
+        </div>
+        <div class="card chart-full">
+          <div class="card-title">14-day PM2.5 — historical model output, forecast &amp; temperature</div>
+          <div class="chart-fill"><canvas id="pivotChart" aria-label="14-day PM2.5 trend chart"></canvas></div>
+          <div class="note">Solid = historical model output · Dashed = forecast model output. Not direct station measurements. Source: CAMS via Open-Meteo.</div>
+        </div>
+        <div class="card fp-card fp-card-wide" id="fpCard" aria-labelledby="fpHeading">
+          <div class="fp-icon" id="fpIcon" aria-hidden="true">ⓘ</div>
+          <div class="fp-text">
+            <div class="eyebrow" id="fpHeading">Pollution source assessment</div>
+            <div class="fp-label" id="fpLabel">Assessing available evidence…</div>
+            <div class="fp-detail" id="fpDetail">A pollutant pattern alone cannot confirm its source.</div>
+            <div class="fp-cite" id="fpCite">Model-based interpretation; not validated source apportionment.</div>
+          </div>
+          <div class="fp-conf" id="fpConf">Inconclusive</div>
+        </div>
+        <div class="chart-row3">
+          <div class="card chart-box"><div class="card-title">Pollutant radar</div><div class="chart-fill"><canvas id="radarChart"></canvas></div></div>
+          <div class="card chart-box"><div class="card-title">Hour × day heatmap</div><canvas id="heatmapChart"></canvas></div>
+          <div class="card chart-box"><div class="card-title">AQI category mix (7d)</div><div class="chart-fill"><canvas id="donutChart"></canvas></div></div>
+        </div>
+        <div class="chart-row2">
+          <div class="card chart-box"><div class="card-title">Peak hours</div><div class="chart-fill"><canvas id="histChart"></canvas></div></div>
+          <div class="card chart-box"><div class="card-title">PM2.5 vs temperature</div><div class="chart-fill"><canvas id="scatterChart"></canvas></div></div>
+        </div>
+      </section>
+
+      <section id="health">
+        <h2 class="section-title">Health &amp; Weather <small>reference-level screening and local model weather</small></h2>
+        <div class="card"><div class="health-matrix" id="healthMatrix"></div></div>
+        <div class="card" style="margin-top:1rem"><div class="wx-grid" id="wxGrid"></div></div>
+      </section>
+    </div>
+
+    <section id="compare">
+      <h2 class="section-title">Compare cities <small>up to 3 side by side</small></h2>
+      <div class="card">
+        <div class="compare-slots">
+          <div class="cmp-input-wrap"><input placeholder="City 1 (e.g., Bengaluru)" id="cmp1" autocomplete="off" aria-label="First city to compare"><div class="cmp-suggestions" id="cmpSug1" role="listbox"></div></div><div class="cmp-input-wrap"><input placeholder="City 2 (e.g., Hyderabad)" id="cmp2" autocomplete="off" aria-label="Second city to compare"><div class="cmp-suggestions" id="cmpSug2" role="listbox"></div></div><div class="cmp-input-wrap"><input placeholder="City 3 (optional)" id="cmp3" autocomplete="off" aria-label="Third city to compare"><div class="cmp-suggestions" id="cmpSug3" role="listbox"></div></div>
+          <button class="geo-btn" onclick="runCompare()">Compare</button>
+        </div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="showCmpTab(0)">AQI</button>
+          <button class="tab-btn" onclick="showCmpTab(1)">Pollutants</button>
+          <button class="tab-btn" onclick="showCmpTab(2)">Trends</button>
+          <button class="tab-btn" onclick="showCmpTab(3)">Ranking</button>
+        </div>
+        <div class="tab-content active" id="cmpTab0"><canvas id="cmpGaugeChart"></canvas></div>
+        <div class="tab-content" id="cmpTab1"><canvas id="cmpBarChart"></canvas></div>
+        <div class="tab-content" id="cmpTab2"><canvas id="cmpTrendChart"></canvas></div>
+        <div class="tab-content" id="cmpTab3"><div id="cmpTable"></div></div>
+      </div>
+    </section>
+
+    <section id="climate">
+      <h2 class="section-title">Global &amp; national climate indicators <small>historical reference data · not live or city-specific</small></h2>
+      <div class="gi-grid" id="giGrid"></div>
+    </section>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()"><div class="modal" id="methodModal"></div></div>
+  </main>
+
+  <footer class="footer">
+    <div><strong>AeroStat</strong> · Location-Based Environmental Analytics</div>
+    <div>Data: Copernicus CAMS via Open-Meteo · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a> / Nominatim · Historical references in Methodology.</div>
+  </footer>
+
+  <script src="js/constants.js"></script>
+  <script src="js/math.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs and local artifacts
+*.log
+*.tmp
+
+# Local environment files (do not commit secrets)
+.env
+.env.*
+!.env.example
