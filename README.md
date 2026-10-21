@@ -36,14 +36,14 @@ Do not start the server from the parent folder; it will show a directory listing
 
 ## APIs and attribution
 
-- Air quality: Open-Meteo Air Quality API, using CAMS-based model output.
-- Weather: Open-Meteo Weather API.
-- Place suggestions: Open-Meteo Geocoding API (place data based on GeoNames).
-- Explicit search and GPS reverse geocoding: OpenStreetMap Nominatim. Nominatim is not used for client-side autocomplete; its public service is rate-limited and must be used in accordance with its [usage policy](https://operations.osmfoundation.org/policies/nominatim/).
-- Map/geocoding data: © OpenStreetMap contributors.
-- Standards references: [US EPA AQI breakpoints](https://aqs.epa.gov/aqsweb/documents/codetables/aqi_breakpoints.html) and [WHO Global Air Quality Guidelines](https://www.who.int/publications/i/item/9789240034228).
-- Historical context: NOAA GML, NASA GISS, NSIDC, Forest Survey of India / Ministry of Environment, Forest and Climate Change, and IRENA. Exact indicator years are shown in the Methodology panel.
-
+- **Air quality:** [Open-Meteo Air Quality API](https://open-meteo.com/en/docs/air-quality-api), using CAMS-based model output.
+- **Weather:** [Open-Meteo Weather API](https://open-meteo.com/en/docs).
+- **Place suggestions:** [Open-Meteo Geocoding API](https://open-meteo.com/en/docs/geocoding-api), which uses place data based on GeoNames.
+- **Explicit place search and GPS reverse geocoding:** [OpenStreetMap Nominatim](https://nominatim.org/). Nominatim is not used for client-side autocomplete. Its public service is rate-limited and must be used in accordance with the [Nominatim Usage Policy](https://operations.osmfoundation.org/policies/nominatim/).
+- **Map and geocoding data:** © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).
+- **Standards references:** [US EPA AQI breakpoints](https://aqs.epa.gov/aqsweb/documents/codetables/aqi_breakpoints.html) and [WHO Global Air Quality Guidelines](https://www.who.int/publications/i/item/9789240034228).
+- **Historical environmental context:** NOAA Global Monitoring Laboratory (GML), NASA Goddard Institute for Space Studies (GISS), the National Snow and Ice Data Center (NSIDC), the Forest Survey of India (FSI), the Ministry of Environment, Forest and Climate Change (MoEFCC), and the International Renewable Energy Agency (IRENA). These indicators are historical reference values rather than live feeds. Consult the Methodology panel for the applicable years and sources.
+  
 ## Project structure
 
 ```text
@@ -67,8 +67,9 @@ This is an educational project, not a medical or regulatory monitoring service. 
 
 
 ## Dashboard behavior
-The six dashboard sections remain available while environmental data loads. If an external API fails, the interface should report that the requested data could not be loaded. This project does not include a Population section.
 
+The dashboard includes six sections: Overview, Pollutants, Trends, Health & Weather, Compare, and Climate. Environmental data may take time to load because the application depends on external APIs. If an API request fails, the interface is designed to display an appropriate error message. The project does not include a Population section.
 
 ### City-specific source assessment
-The source-assessment card is computed from the selected location's modelled pollutant values (PM₂.₅, PM₁₀, NO₂, CO, O₃, and SO₂). It uses conservative, illustrative pattern rules and shows the input values; it is not validated source apportionment. Different cities can produce the same result when their measured/modelled pollutant profiles are similar.
+
+The source-assessment card uses the selected location's modelled pollutant values (PM₂.₅, PM₁₀, NO₂, CO, O₃, and SO₂) to evaluate a small set of illustrative pollution-pattern rules. It may show an inconclusive result when the evidence is weak or ambiguous. Any suggested pattern is a hypothesis for educational exploration, not a confirmed emission source or scientifically validated source-apportionment result. Different cities may produce the same assessment when their modelled pollutant profiles are similar.
